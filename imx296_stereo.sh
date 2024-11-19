@@ -14,7 +14,7 @@
 
 . imx296_constants.sh
 
-gst-launch-1.0 -v nvarguscamerasrc sensor-id=0 name=left \
+gst-launch-1.0 nvarguscamerasrc sensor-id=0 name=left \
                   nvarguscamerasrc sensor-id=1 name=right \
                   glstereomix name=mix \
     left. ! "video/x-raw(memory:NVMM),width=$IMG_WIDTH,height=$IMG_HEIGHT,framerate=$IMG_RATE/1" ! \
