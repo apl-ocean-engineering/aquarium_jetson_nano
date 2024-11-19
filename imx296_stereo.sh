@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/bash
 #
 # Uses the "glstereomix" GStreamer element to stream two nvargus cameras,
 # combine them into a left-and-right composite image
@@ -12,9 +12,7 @@
 #
 #   ffplay -rtsp_transport udp rtsp://<ip address of nano>:8554/stereo
 
-IMG_WIDTH=1440
-IMG_HEIGHT=1080
-IMG_RATE=30
+. imx296_constants.sh
 
 gst-launch-1.0 -v nvarguscamerasrc sensor-id=0 name=left \
                   nvarguscamerasrc sensor-id=1 name=right \

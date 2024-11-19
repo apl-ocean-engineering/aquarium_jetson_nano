@@ -1,3 +1,11 @@
-#!/usr/bin/sh
+#!/usr/bin/bash
+#
+# Stream data from one camera using v4l2
+#
 
- v4l2-ctl --set-fmt-video=width=1440,height=1080,pixelformat=RG10 --stream-mmap --stream-count=100 -d /dev/video0
+WHICH_CAMERA=0
+
+. imx296_constants.sh
+
+ v4l2-ctl --set-fmt-video=width=$IMG_WIDTH,height=$IMG_HEIGHT,pixelformat=RG10 \
+        --stream-mmap --stream-count=180 -d $WHICH_CAMERA

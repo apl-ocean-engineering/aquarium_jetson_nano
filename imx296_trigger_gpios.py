@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 #
+# Sample program which sends external triggers to VC cameras
 #
+# Only works if cameras are previously set to EXTERNAL mode 
+# (this program does not configure the cameras automatically)
 
 import gpiod
 import argparse
@@ -29,7 +32,7 @@ def toggle_multiple_line_values(chip_path, line_values):
         print(
             " ".join("{}={}".format(l, value_str[v]) for (l, v) in line_values.items())
         )
-        time.sleep(1)
+        time.sleep(0.1)
         for l, v in line_values.items():
             line_values[l] = toggle_value(v)
         request.set_values(line_values)
