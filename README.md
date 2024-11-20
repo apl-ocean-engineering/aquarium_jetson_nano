@@ -4,6 +4,48 @@ Scratchpad repo for exchanging code and ideas during Jetson Orin Nano testing fo
 
 For now, see the [wiki](https://github.com/apl-ocean-engineering/aquarium_jetson_nano/wiki)
 
+# Scripts:
+
+## imx296_gst.sh
+
+Streams one camera using gstreamer.   By default the gstreamer pipeline in the script publishes an RTSP stream -- it assumes an instance of [mediamtx](https://github.com/bluenviron/mediamtx) has been started on the Nano:
+
+```
+docker run --rm -it --network=host bluenviron/mediamtx:latest
+```
+
+The video can then be viewed using an RTSP client (`ffplay`, `VLC` etc)
+
+See the comment in this script for saving the output to a file.
+
+## imx296_stereo.sh
+
+Streams _both_ cameras, compositing the two images side-by-side.   Publishes to a local RTSP server (see above).
+
+## imx296_set_trigger.py
+
+Configures camera trigger mode with `v4l2-ctl`.   For example, to set camera 0 to `EXTERNAL` mode:
+
+```
+./imx296_set_trigger.py -c 0 external
+```
+
+To set both cameras to "normal" triggering:
+
+```
+./imx296_set_trigger.py -c 0 -c 1  streaming
+```
+
+## imx296_trigger_gpios.py
+
+Triggers both camera external trigger GPIOs at a fixed rate.   Only has an effect on cameras set the `EXTERNAL` mode.
+
+## imx296_v4l.sh
+
+Streams one camera using `v4l2-ctl`.   Note this doesn't produce any visible output, but does produce ">" hashes on each frame.   A good simple method for checking if the camera is running at all.
+
+# Technical Details
+
 # Trigger information
 
 On the Orin NX devboard:
