@@ -2,7 +2,7 @@
 #
 # Sample program which sends external triggers to VC cameras
 #
-# Only works if cameras are previously set to EXTERNAL mode 
+# Only effective if the cameras are set to EXTERNAL mode 
 # (this program does not configure the cameras automatically)
 
 import gpiod
