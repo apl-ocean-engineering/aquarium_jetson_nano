@@ -8,10 +8,10 @@
 #
 # The stream can then be played with an RTSP client on a desktop, for example:
 #
-#   ffplay -rtsp_transport udp rtsp://<ip address of nano>:8554/stereo
+#   ffplay -rtsp_transport udp rtsp://<ip address of nano>:8554/mono
 #
 #
-# Alternatively, To write an mp4 file, replace "rtspclientsink" with:
+# Alternatively, To write an mp4 file, replace "rtspclientsink" at the end of the command with:
 #
 #   qtmux ! filesink location=test.mp4 
 #
@@ -19,6 +19,8 @@
 #
 # Note this requires "h264parse" which is in gstreamer1.0-plugins-bad
 #           and "rtspclientsink" which is in gstreamer1.0-rtsp
+#
+# which might need to be installed:   sudo apt-get install -y gstreamer1.0-rtsp gstreamer1.0-plugins-bad
 #
 
 camera_num=${WHICH_CAMERA:-0}
@@ -30,6 +32,7 @@ gst-launch-1.0 -ev nvarguscamerasrc sensor-id=$camera_num  ! \
             nvvidconv ! 'video/x-raw' ! queue ! \
             x264enc speed-preset=veryfast tune=zerolatency ! \
             h264parse ! \
-            rtspclientsink latency=200 location=rtsp://localhost:8554/test
+            rtspclientsink latency=200 location=rtsp://localhost:8554/mono
 
+            # To save to a file, delete the "rtspclientsink" above, and use this instead
             #qtmux ! filesink location=test.mp4 -e
