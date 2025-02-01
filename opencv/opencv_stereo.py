@@ -17,7 +17,11 @@ if __name__ == "__main__":
     framerate = 30
 
     # GStreamer string, may be possible to optimize this further?
-    gst_string = "nvarguscamerasrc sensor-id={camera_num} ! video/x-raw(memory:NVMM),width={image_size[1]},height={image_size[0]},framerate={framerate}/1 ! nvvidconv ! queue ! video/x-raw, format=BGRx ! videoconvert ! video/x-raw,format=BGR ! appsink"
+    gst_string = '''
+nvarguscamerasrc sensor-id={camera_num} wbmode=0 aelock=true ispdigitalgainrange=\"1 8\" gainrange=\"1 48\" ! 
+    video/x-raw(memory:NVMM),width={image_size[1]},height={image_size[0]},framerate={framerate}/1 ! nvvidconv !
+    queue ! video/x-raw, format=BGRx ! videoconvert ! video/x-raw,format=BGR ! appsink
+'''
 
     # Open OpenCV camera
     left = cv2.VideoCapture(gst_string.format(camera_num=0, image_size=image_size, framerate=framerate), cv2.CAP_GSTREAMER )
@@ -63,8 +67,8 @@ if __name__ == "__main__":
         composite[0:left_sz[0], 0:left_sz[1],:] = left_downsampled
         composite[0:right_sz[0], left_sz[1]:left_sz[1]+right_sz[1],:] = right_downsampled
 
-        cv2.imshow("left", left_downsampled)
-        cv2.imshow("right", right_downsampled)
+        # cv2.imshow("left", left_downsampled)
+        # cv2.imshow("right", right_downsampled)
 
         cv2.imshow("stereo", composite)
         cv2.waitKey(1)

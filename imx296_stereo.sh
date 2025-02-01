@@ -14,15 +14,24 @@
 
 . imx296_constants.sh
 
-gst-launch-1.0 nvarguscamerasrc sensor-id=0 name=left \
-                  nvarguscamerasrc sensor-id=1 name=right \
-                  glstereomix name=mix \
+# Valid values: file, rtsp or screen
+OUTPUT=screen
+
+if [ $OUTPUT == "rtsp" ]; then
+        GST_OUTPUT="x264enc speed-preset=veryfast tune=zerolatency ! h264parse ! rtspclientsink location=rtsp://localhost:8554/stereo"
+elif [ $OUTPUT == "screen" ]; then
+        GST_OUTPUT="nveglglessink"
+elif [ $OUTPUT == "file" ]; then
+        GST_OUTPUT="x264enc speed-preset=veryfast tune=zerolatency ! \
+                h264parse ! qtmux ! filesink location=test.mp4 -e"
+fi
+
+gst-launch-1.0 nvarguscamerasrc sensor-id=0 $NVARGUS_CONFIG name=left \
+                nvarguscamerasrc sensor-id=1 $NVARGUS_CONFIG name=right \
+                glstereomix name=mix \
     left. ! "video/x-raw(memory:NVMM),width=$IMG_WIDTH,height=$IMG_HEIGHT,framerate=$IMG_RATE/1" ! \
             nvvidconv ! 'video/x-raw' ! glupload ! mix. \
     right. ! "video/x-raw(memory:NVMM),width=$IMG_WIDTH,height=$IMG_HEIGHT,framerate=$IMG_RATE/1" ! \
              nvvidconv !'video/x-raw' ! glupload ! mix. \
-    mix. ! video/x-raw'(memory:GLMemory)',multiview-mode=side-by-side ! \
-    glcolorconvert ! gldownload ! queue ! \
-    x264enc speed-preset=veryfast tune=zerolatency ! \
-    h264parse ! \
-    rtspclientsink location=rtsp://localhost:8554/stereo
+    mix. ! video/x-raw'(memory:GLMemory)',multiview-mode=side-by-side ! glcolorconvert ! gldownload ! $GST_OUTPUT
+    

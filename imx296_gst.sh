@@ -27,12 +27,18 @@ camera_num=${WHICH_CAMERA:-0}
 
 . imx296_constants.sh
 
-gst-launch-1.0 -ev nvarguscamerasrc sensor-id=$camera_num  ! \
-            "video/x-raw(memory:NVMM),width=$IMG_WIDTH,height=$IMG_HEIGHT,framerate=$IMG_RATE/1" ! \
-            nvvidconv ! 'video/x-raw' ! queue ! \
-            x264enc speed-preset=veryfast tune=zerolatency ! \
-            h264parse ! \
-            rtspclientsink latency=200 location=rtsp://localhost:8554/mono
+# Valid values: file, rtsp or screen
+OUTPUT=screen
 
-            # To save to a file, delete the "rtspclientsink" above, and use this instead
-            #qtmux ! filesink location=test.mp4 -e
+if [ $OUTPUT == "rtsp" ]; then
+        GST_OUTPUT="x264enc speed-preset=veryfast tune=zerolatency ! h264parse ! rtspclientsink location=rtsp://localhost:8554/stereo"
+elif [ $OUTPUT == "screen" ]; then
+        GST_OUTPUT="nveglglessink"
+elif [ $OUTPUT == "file" ]; then
+        GST_OUTPUT="x264enc speed-preset=veryfast tune=zerolatency ! \
+                h264parse ! qtmux ! filesink location=test.mp4 -e"
+fi
+
+gst-launch-1.0 -ev nvarguscamerasrc sensor-id=$camera_num $NVARGUS_CONFIG ! \
+            "video/x-raw(memory:NVMM),width=$IMG_WIDTH,height=$IMG_HEIGHT,framerate=$IMG_RATE/1" ! \
+            nvvidconv ! 'video/x-raw' ! queue ! $GST_OUTPUT
