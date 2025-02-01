@@ -2,20 +2,17 @@
 #
 # Uses the "glstereomix" GStreamer element to stream two nvargus cameras,
 # combine them into a left-and-right composite image
-# and stream it over RTSP to: rtsp://localhost:8554/stereo
+# Set the type of output
+# Default to screen (will fail if connected over SSH)
 #
-# This asumes a mediamtx instance is already running on the nano:
+# Override on the command line with (for example):
 #
-#   docker run --rm -it --network=host bluenviron/mediamtx:latest
+#   OUTPUT=file ./imx296_gst.sh
 #
-# It can then be played on a desktop with:
-#
-#   ffplay -rtsp_transport udp rtsp://<ip address of nano>:8554/stereo
+# Valid values: file, rtsp or screen
+OUTPUT=${OUTPUT:-screen}
 
 . imx296_constants.sh
-
-# Valid values: file, rtsp or screen
-OUTPUT=screen
 
 if [ $OUTPUT == "rtsp" ]; then
         GST_OUTPUT="x264enc speed-preset=veryfast tune=zerolatency ! h264parse ! rtspclientsink location=rtsp://localhost:8554/stereo"
@@ -23,7 +20,9 @@ elif [ $OUTPUT == "screen" ]; then
         GST_OUTPUT="nveglglessink"
 elif [ $OUTPUT == "file" ]; then
         GST_OUTPUT="x264enc speed-preset=veryfast tune=zerolatency ! \
-                h264parse ! qtmux ! filesink location=test.mp4 -e"
+                h264parse ! mp4mux ! filesink location=test.mp4 -e"
+elif [ $OUTPUT == "fake" ]; then
+        GST_OUTPUT="fakesink"
 fi
 
 gst-launch-1.0 nvarguscamerasrc sensor-id=0 $NVARGUS_CONFIG name=left \
