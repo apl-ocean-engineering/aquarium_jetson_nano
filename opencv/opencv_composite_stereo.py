@@ -18,14 +18,16 @@ if __name__ == "__main__":
 
     # GStreamer string, may be possible to optimize this further?
     gst_string = '''
-nvarguscamerasrc sensor-id=0 wbmode=0 aelock=true ispdigitalgainrange=\"1 8\" gainrange=\"1 48\" name=left 
-nvarguscamerasrc sensor-id=1 wbmode=0 aelock=true ispdigitalgainrange=\"1 8\" gainrange=\"1 48\" name=right
+nvarguscamerasrc sensor-id=0 wbmode=1 ispdigitalgainrange=\"1 8\" gainrange=\"1 48\" tnr-mode=0 exposuretimerange="2000 20000000" saturation=1.3 name=left 
+nvarguscamerasrc sensor-id=1 wbmode=1 ispdigitalgainrange=\"1 8\" gainrange=\"1 48\" tnr-mode=0 exposuretimerange="2000 20000000" saturation=1.3 name=right
 glstereomix name=mix 
-left. ! video/x-raw(memory:NVMM),width={image_size[1]},height={image_size[0]},framerate={framerate}/1 ! nvvidconv ! video/x-raw ! glupload ! mix.
+left. ! video/x-raw(memory:NVMM),width={image_size[1]},height={image_size[0]},framerate={framerate}/1 ! nvvidconv ! video/x-raw ! glupload  ! mix.
 right. ! video/x-raw(memory:NVMM),width={image_size[1]},height={image_size[0]},framerate={framerate}/1 ! nvvidconv ! video/x-raw ! glupload ! mix. 
-mix. ! video/x-raw(memory:GLMemory),multiview-mode=side-by-side ! glcolorconvert ! gldownload ! 
-        queue ! video/x-raw,format=BGRx ! videoconvert ! video/x-raw,format=BGR ! appsink'
+mix. ! video/x-raw(memory:GLMemory),multiview-mode=side-by-side  ! glcolorconvert ! gldownload ! 
+        queue ! video/x-raw,format=BGRx  ! videoconvert ! video/x-raw,format=BGR ! appsink'
 '''
+
+# ! glcolorbalance constrast=0.1 brightness=0.2 saturation=1.2
 
     gst_string = gst_string.format(image_size=image_size, framerate=framerate)
     print(gst_string)
