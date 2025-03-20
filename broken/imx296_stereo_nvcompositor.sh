@@ -25,13 +25,14 @@ elif [ $OUTPUT == "fake" ]; then
         GST_OUTPUT="fakesink"
 fi
 
-configure_cameras 0 1
-gst-launch-1.0 nvarguscamerasrc sensor-id=0 $NVARGUS_CONFIG name=left \
-                nvarguscamerasrc sensor-id=1 $NVARGUS_CONFIG name=right \
-                glstereomix name=mix \
-    left. ! "video/x-raw(memory:NVMM),width=$IMG_WIDTH,height=$IMG_HEIGHT,framerate=$IMG_RATE/1" ! \
-            nvvidconv ! 'video/x-raw' ! glupload ! mix. \
-    right. ! "video/x-raw(memory:NVMM),width=$IMG_WIDTH,height=$IMG_HEIGHT,framerate=$IMG_RATE/1" ! \
-             nvvidconv !'video/x-raw' ! glupload ! mix. \
-    mix. ! video/x-raw'(memory:GLMemory)',multiview-mode=side-by-side ! glcolorconvert ! gldownload ! $GST_OUTPUT
-    
+
+v4l2-ctl -d 0 -c bypass_mode=0 -c override_enable=1
+v4l2-ctl -d 1 -c bypass_mode=0 -c override_enable=1
+gst-launch-1.0 \
+        nvcompositor name=comp ! 'video/x-raw(memory:NVMM)' ! nvvidconv ! 'video/x-raw' ! fakesink \
+        nvarguscamerasrc sensor-id=0 $NVARGUS_CONFIG ! \
+                'video/x-raw(memory:NVMM)',width=$IMG_WIDTH,height=$IMG_HEIGHT,'format=(string)NV12' ! \
+                comp. \
+        nvarguscamerasrc sensor-id=1 $NVARGUS_CONFIG ! \
+                'video/x-raw(memory:NVMM)',width=$IMG_WIDTH,height=$IMG_HEIGHT,'format=(string)NV12' ! \
+                comp.    

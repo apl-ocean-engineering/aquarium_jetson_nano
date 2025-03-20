@@ -39,6 +39,9 @@ elif [ $OUTPUT == "file" ]; then
                 h264parse ! mp4mux ! filesink location=test.mp4 -e"
 fi
 
+echo "Launching camera $camera_num"
+
+configure_cameras $camera_num
 gst-launch-1.0 -ev nvarguscamerasrc sensor-id=$camera_num $NVARGUS_CONFIG ! \
             "video/x-raw(memory:NVMM),width=$IMG_WIDTH,height=$IMG_HEIGHT,framerate=$IMG_RATE/1" ! \
             nvvidconv ! 'video/x-raw' ! queue ! $GST_OUTPUT
