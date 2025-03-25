@@ -13,7 +13,6 @@ camera_num=${WHICH_CAMERA:-0}
 
 . imx296_constants.sh
 
-# Bypass mode must be 0 for external trigger to work
-configure_cameras $camera_num
+#configure_cameras $camera_num
 v4l2-ctl --set-fmt-video=width=$IMG_WIDTH,height=$IMG_HEIGHT,pixelformat=RG10 \
         --stream-mmap --stream-count=100 -d $camera_num

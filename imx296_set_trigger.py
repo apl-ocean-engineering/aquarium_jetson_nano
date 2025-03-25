@@ -52,4 +52,4 @@ if __name__=="__main__":
 
     for cam in args.camera:
         print(f"Configuring camera {cam} to {mode.name}")
-        subprocess.run(["sudo", "v4l2-ctl", "-d", cam, "-c", f"trigger_mode={mode.value}"])
+        subprocess.run(["v4l2-ctl", "-d", cam, "-c", f"trigger_mode={mode.value}"])
