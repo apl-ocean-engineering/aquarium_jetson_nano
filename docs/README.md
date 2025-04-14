@@ -2,7 +2,7 @@
 ![](resources/housed_nano.jpg)
 
  * [Bill of materials](bill_of_materials.md)
- * [Sensor board](sensor_board_md)
+ * [Sensor board](sensor_board.md)
  * [IMU](imu.md)
 
 

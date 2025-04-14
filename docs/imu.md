@@ -1,8 +1,10 @@
-The Nano system has a VetorNav [VN100 Rugged](https://www.vectornav.com/products/detail/vn-100?gad_source=1&gbraid=0AAAAAD2EOMMHBF22FjTunN2XF20KxFCOX&gclid=CjwKCAjw5PK_BhBBEiwAL7GTPQHpKoln6EM5mMhLmxXkyfay3LzAJRN4Dq_Y6IyOus5SB7GWh_xfoRoCsJkQAvD_BwE) IMU installed.   It connects to the Nano via USB and appears as a serial device.
+The Nano system contains a VectorNav [VN100 Rugged](https://www.vectornav.com/products/detail/vn-100?gad_source=1&gbraid=0AAAAAD2EOMMHBF22FjTunN2XF20KxFCOX&gclid=CjwKCAjw5PK_BhBBEiwAL7GTPQHpKoln6EM5mMhLmxXkyfay3LzAJRN4Dq_Y6IyOus5SB7GWh_xfoRoCsJkQAvD_BwE) IMU.   It connects to the Nano via USB and appears as the serial device `/dev/ttyUSB0`, but I've installed a udev rule to create a symlink to `/dev/ttyVectornav`
 
-The USB-to-serial adator will appear as `/dev/ttyUSB0`, but I've installed a udev rule to create a symlink to `/dev/ttyVectornav`
+In most cases, I configure the device for 921600 baud.  The sensor output is binary, but can be observed with:
 
-In most cases, I configure the device for 921600 baud.
+```
+picocom -b 921600 /dev/ttyVectornav
+```
 
 I have briefly tried the following software:
 
