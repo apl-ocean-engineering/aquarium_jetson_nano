@@ -20,7 +20,7 @@ For reference, here's our bill of materials:
 |  BlueRobotics [M10-7.5-LC  BR-100870-075](https://bluerobotics.com/store/cables-connectors/penetrators/wlp-vp/?attribute_bulkhead-size-seal-size-plug-compression-compatible-cable-diameter=M10+-+7.5+mm+-+LC+-+7.5+mm+%C2%B1+0.3+mm) | Wetlink penetrator  M109-7.5-LC |
 | BlueRobotics [BR-100434-010](https://bluerobotics.com/store/cables-connectors/wlp-blank/) | M10 Blank (if needed) |
 | | *Custom leak detector board which includes:* |
-| Adafruit [4900](https://www.adafruit.com/product/4900) |  QtPy RP2040 |
+| Adafruit [4900](https://www.adafruit.com/product/4600) |  QtPy M0 |
 | Adafruit [2652](https://www.adafruit.com/product/2652) |  BME280 module |
 | Adafruit [4399](https://www.adafruit.com/product/4399) |  Stemma QT cable  |
 | Blue Robotics [BR-100954](https://bluerobotics.com/store/sensors-cameras/leak-sensor/sos-probes/) |  SOS Probes 6" |
