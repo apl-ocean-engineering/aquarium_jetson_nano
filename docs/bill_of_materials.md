@@ -29,6 +29,3 @@ For reference, here's our bill of materials:
 | [AliExpress](https://www.aliexpress.us/item/3256803341065609.html?spm=a2g0o.order_list.order_list_main.4.505b1802y2obiQ&gatewayAdapt=glo2usa) | Low-profile right-angle USB-A cables.  This is an example part I had from another project, you could get a direct USB-A to USB-C for the QtPy. |
 
 The unit shown above also contains a number of laser cut and 3D printed parts.   STLs and drawings forthcoming.
-
-Back to [cameras]({{< ref "cameras" >}})
-
