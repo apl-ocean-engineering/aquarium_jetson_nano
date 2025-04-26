@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orb_detector_mwe"
+version = "0.0.1"
+requires-python = ">=3.11"
+dependencies = [
+    "opencv-python-headless",
+    "rosbags",
+    "rosbags-image",
+]
+
+
+[project.scripts]
+orb_detect = "orb_detector_mwe.entrypoint:main"
