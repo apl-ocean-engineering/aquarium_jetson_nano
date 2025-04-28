@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "imu_bag_rewriter"
+version = "0.0.1"
+requires-python = ">=3.11"
+dependencies = [
+    "rosbags>=0.10.9",
+]
+
+
+[project.scripts]
+imu_bag_rewriter = "imu_bag_rewriter.entrypoint:main"
