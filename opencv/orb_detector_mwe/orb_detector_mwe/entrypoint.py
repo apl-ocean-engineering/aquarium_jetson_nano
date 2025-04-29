@@ -4,6 +4,7 @@ from rosbags.highlevel import AnyReader
 from rosbags.typesys import Stores, get_typestore
 from rosbags.image import message_to_cvimage
 import cv2
+import numpy as np
 
 from pathlib import Path
 
@@ -86,12 +87,20 @@ def main():
             img = message_to_cvimage(msg, 'bgr8')
             outdirs.write_img("raw", msg, img)
 
+            postproc = (255 * np.float_power(img/255, 1.5)).astype(np.uint8)
 
-            orb_result = orb_detector.detectAndCompute(img)
+            # hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
+            # hsv[:,:,2] = cv2.equalizeHist( hsv[:,:,2] )
+            # postproc = cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)
+
+            outdirs.write_img("postproc", msg, postproc)
+
+
+            orb_result = orb_detector.detectAndCompute(postproc)
 
             print(f"Found {orb_result.nKeypoints()} keypoints")
 
-            kp_img = orb_result.draw(img)
+            kp_img = orb_result.draw(postproc)
 
             outdirs.write_img("orb_kps", msg, kp_img)
 
