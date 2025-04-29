@@ -11,6 +11,7 @@ from pathlib import Path
 import shutil
 import pandas as pd
 from sklearn import linear_model
+import tqdm
 
 
 
@@ -27,11 +28,13 @@ def main():
     if args.output:
         output_filename = args.output
     elif len(args.bagfiles) == 1:
-        output_filename = args.bagfiles[0].stem + "_imu_rewriter"
+        output_filename = Path(args.bagfiles[0].stem + "_imu_rewriter")
         print(f"Autogenerating output path: {output_filename}")
 
     else:
         print("More than one input file specified, cannot automatically determine output file name")
+
+    use_simple_method = True
 
 
     imu_data = []
@@ -43,34 +46,21 @@ def main():
     
         connections = [c for c in reader.connections if c.msgtype == "sensor_msgs/msg/Imu"]
 
-        for connection, timestamp, rawdata in reader.messages():
-            # Else, actually parse the message
-            imu_msg = typestore.deserialize_cdr(rawdata, connection.msgtype)
-            if imu_msg.header.stamp.sec == 0:
-                continue
+        for connection, timestamp, rawdata in tqdm.tqdm(reader.messages(connections=connections), total=reader.message_count):
 
-            imu_data.append( { 'bag_ts': timestamp,
-                                'header_ts_sec': imu_msg.header.stamp.sec,
-                                'header_ts_nanosec': imu_msg.header.stamp.nanosec})
+            imu_msg = typestore.deserialize_cdr(rawdata, connection.msgtype)
+            if imu_msg.header.stamp.sec > 0:
+
+                imu_data.append( { 'bag_ts': timestamp,
+                                    'header_ts_sec': imu_msg.header.stamp.sec,
+                                    'header_ts_nanosec': imu_msg.header.stamp.nanosec})
 
             bag_time_data.append({ 'bag_ts': timestamp, 'seq': seq})
             seq += 1
 
 
-    imu_frame = pd.DataFrame(imu_data)
     bag_time_frame = pd.DataFrame(bag_time_data)
-
-    imu_frame.drop_duplicates(subset=['header_ts_sec','header_ts_nanosec'], keep='first', inplace=True)
-    imu_frame['header_ts'] = 1000000000*imu_frame.header_ts_sec + imu_frame.header_ts_nanosec
-
-    imu_frame['bag_delay'] = imu_frame.bag_ts - imu_frame.header_ts
-
-    print(imu_frame.head())
-
-    mean_delay = imu_frame.bag_delay.mean()
-    delay_dev = imu_frame.bag_delay.std()
-    print(f"Bag time lags header time by {mean_delay} ns, stddev {delay_dev}")
-
+    print(f"Loaded {bag_time_frame.size} bag timestamps")
     reg = linear_model.LinearRegression()
     reg.fit(bag_time_frame[['seq']], bag_time_frame[['bag_ts']])
     r2_score = reg.score(bag_time_frame[['seq']], bag_time_frame[['bag_ts']])
@@ -80,36 +70,104 @@ def main():
     bag_ts_dt = reg.coef_[0][0]
     bag_ts_offset = bag_time_frame['bag_ts'][0]
 
-    output_connections = {}
-    
-    # Remove existing
-    shutil.rmtree( output_filename )
-    with Writer(output_filename, storage_plugin=StoragePlugin.MCAP) as writer:
 
-        seq = 0
-        with AnyReader(args.bagfiles, default_typestore=typestore) as reader:
+    if len(imu_data) == 0:
+        ## Use simple method
+
+        print("No IMU messages have header timestamps, just copying bag timestamps")
+
+        # The actual data time will be earlier than the bagfile timestamp
+        # However, we have only anecdotal evidence
+        #
+        # This value taken from a short bagfile with the "fixed" driver
+        # And both cameras
+        bag_ts_to_header_stamp_fudge_ns = 750000
+        print(f"Using fudge value of {bag_ts_to_header_stamp_fudge_ns} ns")
+
+        output_connections = {}
         
-            for connection, timestamp, rawdata in reader.messages():
+        imu_msg_count = 0
 
-                if connection.topic not in output_connections:
-                    print(f"Adding connection for topic {connection.topic}")
-                    output_connections[connection.topic] = writer.add_connection(connection.topic, connection.msgtype)
+        # Remove existing
+        if output_filename.exists():
+            shutil.rmtree( output_filename )
+        with Writer(output_filename, storage_plugin=StoragePlugin.MCAP) as writer:
 
-                if connection.msgtype != 'sensor_msgs/msg/Imu':
-                    writer.write(output_connections[connection.topic], timestamp, rawdata)
-                    continue
+            with AnyReader(args.bagfiles, default_typestore=typestore) as reader:
+            
+                for connection, timestamp, rawdata in tqdm.tqdm(reader.messages(), total=reader.message_count):
 
-                # Else, actually parse the message
-                imu_msg = typestore.deserialize_cdr(rawdata, connection.msgtype)
+                    if connection.topic not in output_connections:
+                        print(f"Adding connection for topic {connection.topic}")
+                        output_connections[connection.topic] = writer.add_connection(connection.topic, connection.msgtype)
 
-                adjusted_ts = (seq * bag_ts_dt) + bag_ts_offset - mean_delay
+                    if connection.msgtype != 'sensor_msgs/msg/Imu':
+                        writer.write(output_connections[connection.topic], timestamp, rawdata)
+                        continue
 
-                imu_msg.header.stamp.sec = int(adjusted_ts // 1e9)
-                imu_msg.header.stamp.nanosec = int(adjusted_ts % 1e9)
+                    # Else, actually parse the message
+                    imu_msg = typestore.deserialize_cdr(rawdata, connection.msgtype)
+
+                    adjusted_ts = bag_ts_offset + (bag_ts_dt*imu_msg_count) - bag_ts_to_header_stamp_fudge_ns
+
+                    imu_msg.header.stamp.sec = int(adjusted_ts // 1e9)
+                    imu_msg.header.stamp.nanosec = int(adjusted_ts % 1e9)
+
+                    writer.write(output_connections[connection.topic], timestamp, typestore.serialize_cdr(imu_msg, connection.msgtype))
+
+                    imu_msg_count += 1
 
 
-                print(f"{seq} {imu_msg.header.stamp.sec} {imu_msg.header.stamp.nanosec}")
+    else:
+        # Have _some_ IMU timestamps, do more complex analysis
 
-                writer.write(output_connections[connection.topic], timestamp, typestore.serialize_cdr(imu_msg, connection.msgtype))
+        imu_frame = pd.DataFrame(imu_data)
+ 
+        imu_frame.drop_duplicates(subset=['header_ts_sec','header_ts_nanosec'], keep='first', inplace=True)
+        imu_frame['header_ts'] = 1000000000*imu_frame.header_ts_sec + imu_frame.header_ts_nanosec
 
-                seq+=1
+        imu_frame['bag_delay'] = imu_frame.bag_ts - imu_frame.header_ts
+
+        print(f"Loaded {imu_frame.size} non-zero IMU timestamps")
+        print(imu_frame.head())
+
+        mean_delay = imu_frame.bag_delay.mean()
+        delay_dev = imu_frame.bag_delay.std()
+        print(f"Bag time lags header time by {mean_delay} ns, stddev {delay_dev}")
+
+
+
+        output_connections = {}
+        
+        # Remove existing
+        if output_filename.exists():
+            shutil.rmtree( output_filename )
+        with Writer(output_filename, storage_plugin=StoragePlugin.MCAP) as writer:
+
+            seq = 0
+            with AnyReader(args.bagfiles, default_typestore=typestore) as reader:
+            
+                for connection, timestamp, rawdata in reader.messages():
+
+                    if connection.topic not in output_connections:
+                        print(f"Adding connection for topic {connection.topic}")
+                        output_connections[connection.topic] = writer.add_connection(connection.topic, connection.msgtype)
+
+                    if connection.msgtype != 'sensor_msgs/msg/Imu':
+                        writer.write(output_connections[connection.topic], timestamp, rawdata)
+                        continue
+
+                    # Else, actually parse the message
+                    imu_msg = typestore.deserialize_cdr(rawdata, connection.msgtype)
+
+                    adjusted_ts = (seq * bag_ts_dt) + bag_ts_offset - mean_delay
+
+                    imu_msg.header.stamp.sec = int(adjusted_ts // 1e9)
+                    imu_msg.header.stamp.nanosec = int(adjusted_ts % 1e9)
+
+
+                    print(f"{seq} {imu_msg.header.stamp.sec} {imu_msg.header.stamp.nanosec}")
+
+                    writer.write(output_connections[connection.topic], timestamp, typestore.serialize_cdr(imu_msg, connection.msgtype))
+
+                    seq+=1
