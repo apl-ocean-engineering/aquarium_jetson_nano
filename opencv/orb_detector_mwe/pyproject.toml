@@ -12,6 +12,8 @@ dependencies = [
     "rosbags-image",
 ]
 
+[tool.setuptools]
+packages = ["orb_detector_mwe"]
 
 [project.scripts]
 orb_detect = "orb_detector_mwe.entrypoint:main"

@@ -60,7 +60,8 @@ def main():
     parser.add_argument("bagfiles", nargs="+", type=Path, help="Bagfile(s) to process")
 
     parser.add_argument("--topic", default="/left/image_raw", help="Image topic to process")
-    parser.add_argument("--count", metavar="N", type=int, default=None, help="Stop after N frames")
+
+    parser.add_argument("--count", metavar="N", type=int, default=None, help="Stop after N frames.  If not specified, whole bag will be processed")
 
     parser.add_argument("--output-dir","-o", default="output", type=Path, help="Directory for output")
 
@@ -87,14 +88,15 @@ def main():
             img = message_to_cvimage(msg, 'bgr8')
             outdirs.write_img("raw", msg, img)
 
+            # Try gamma processing
             postproc = (255 * np.float_power(img/255, 1.5)).astype(np.uint8)
 
+            # Try intensity histogram equalization
             # hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HSV)
             # hsv[:,:,2] = cv2.equalizeHist( hsv[:,:,2] )
             # postproc = cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)
 
             outdirs.write_img("postproc", msg, postproc)
-
 
             orb_result = orb_detector.detectAndCompute(postproc)
 
