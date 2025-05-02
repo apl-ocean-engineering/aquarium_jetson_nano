@@ -22,3 +22,5 @@ This package contains two sample scripts:
 To test, run `query_mavlink` in one window.  The system will display mavlink messages.
 
 Then run `send_mavlink` in separate window, one instance of a heatbeat message with a version of 99 will appear in the `query_mavlink_ windows.
+
+There is a bit of a trick to get DISTANCE_SENSOR messages to show up in QGC, [see notes](DISTANCE_SENSOR.md).
