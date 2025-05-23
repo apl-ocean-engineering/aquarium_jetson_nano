@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Sample script which uses OpenCV to read images from one camera,
 # then runs some basic image processing ... Gaussian blue and Sobel edges.
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     framerate = 10
 
     # GStreamer string, may be possible to optimize this further?
-    gst_string = f"nvarguscamerasrc sensor-id={camera_num} ! video/x-raw(memory:NVMM),width={image_size[1]},height={image_size[0]},framerate={framerate}/1 ! nvvidconv ! queue ! video/x-raw,pixel-format=(string)BGR ! videoconvert ! video/x-raw,pixel-format=(string)BGR ! appsink"
+    gst_string = f'nvarguscamerasrc sensor-id={camera_num} wbmode=0 aelock=true ispdigitalgainrange="1 8" gainrange="1 48" exposuretimerange="35000 100000000" ! video/x-raw(memory:NVMM),width={image_size[1]},height={image_size[0]},framerate={framerate}/1 ! nvvidconv ! queue ! video/x-raw,pixel-format=(string)BGR ! gamma gamma=0.7 ! videobalance brightness=0.2 !  videoconvert ! video/x-raw,pixel-format=(string)BGR ! appsink'
         
     print(f"Using GStreamer configuration: {gst_string}")
 
