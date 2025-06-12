@@ -60,3 +60,45 @@ rosrun allan_variance_ros analysis.py --data cooked_data/allan_variance.csv --co
 ```
 
 This will produce some text output and graphs.
+
+```
+ACCELEROMETER:                                                                                                                                                                                                                                           
+X Velocity Random Walk:  0.00101 m/s/sqrt(s)  0.06064 m/s/sqrt(hr)                                                                                                                                                                                       
+Y Velocity Random Walk:  0.00099 m/s/sqrt(s)  0.05930 m/s/sqrt(hr)                                                                                                                                                                                       
+Z Velocity Random Walk:  0.00135 m/s/sqrt(s)  0.08091 m/s/sqrt(hr)                                                                                                                                                                                       
+X Bias Instability:  0.00012 m/s^2  1584.33538 m/hr^2                                                                                                                                                                                                    
+Y Bias Instability:  0.00014 m/s^2  1805.84251 m/hr^2                                                                                                                                                                                                    
+Z Bias Instability:  0.00020 m/s^2  2624.17320 m/hr^2
+X Accel Random Walk:  0.00002 m/s^2/sqrt(s)
+Y Accel Random Walk:  0.00002 m/s^2/sqrt(s)
+Z Accel Random Walk:  0.00005 m/s^2/sqrt(s)
+GYROSCOPE:
+X Angle Random Walk:  0.00293 deg/sqrt(s)  0.17602 deg/sqrt(hr)
+Y Angle Random Walk:  0.00299 deg/sqrt(s)  0.17926 deg/sqrt(hr)
+Z Angle Random Walk:  0.00303 deg/sqrt(s)  0.18195 deg/sqrt(hr)
+X Bias Instability:  0.00023 deg/s  0.82319 deg/hr
+Y Bias Instability:  0.00026 deg/s  0.95120 deg/hr
+Z Bias Instability:  0.00020 deg/s  0.73373 deg/hr
+X Rate Random Walk:  0.00004 deg/s/sqrt(s)
+Y Rate Random Walk:  0.00004 deg/s/sqrt(s)
+Z Rate Random Walk:  0.00004 deg/s/sqrt(s)
+```
+
+![](2025-06-11-IMU-Calibration/acceleration.png)
+
+![](2025-06-11-IMU-Calibration/gyro.png)
+
+and an `imu.yaml`:
+
+```
+#Accelerometer
+accelerometer_noise_density: 0.0013485615577481405 
+accelerometer_random_walk: 4.8764403232898057e-05 
+
+#Gyroscope
+gyroscope_noise_density: 5.292821371595905e-05 
+gyroscope_random_walk: 7.067414132646592e-07 
+
+rostopic: '/imu' 
+update_rate: 200 
+```
