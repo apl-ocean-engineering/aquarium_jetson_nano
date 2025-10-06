@@ -102,3 +102,23 @@ gyroscope_random_walk: 7.067414132646592e-07
 rostopic: '/imu' 
 update_rate: 200 
 ```
+
+# Camera calibration
+
+For fun, try the camera calibration (in air, since we don't have an in-air calibration)
+
+Took data with camera imagery of Kalibr board.
+
+Install Kalibr per [their instructions.](https://github.com/ethz-asl/kalibr/wiki/installation)
+
+```
+kalibr_calibrate_cameras --bag [filename.bag] --topics [TOPIC_0 ... TOPIC_N] --models [MODEL_0 ... MODEL_N] --target aprilgrid.yaml
+```
+
+# Camera-IMU Calibration
+
+Then:
+
+```
+kalibr_calibrate_imu_camera --bag [filename.bag] --cam [camchain.yaml] --imu imu.yaml --target aprilgrid.yaml
+```
