@@ -10,9 +10,9 @@
 #   OUTPUT=file ./imx296_gst.sh
 #
 # Valid values: file, rtsp or screen
-OUTPUT=${OUTPUT:-screen}
+OUTPUT=${OUTPUT:-rtsp}
 
-camera_num=${WHICH_CAMERA:-0}
+camera_num=${WHICH_CAMERA:-1}
 . imx296_constants.sh
 
 if [ $OUTPUT == "rtsp" ]; then
@@ -29,7 +29,7 @@ if [ $OUTPUT == "rtsp" ]; then
         #
         # which might need to be installed:   sudo apt-get install -y gstreamer1.0-rtsp gstreamer1.0-plugins-bad
         #
-        GST_OUTPUT="x264enc speed-preset=veryfast tune=zerolatency ! h264parse ! rtspclientsink location=rtsp://localhost:8554/mono"
+        GST_OUTPUT="x264enc speed-preset=veryfast tune=zerolatency ! h264parse ! rtspclientsink location=rtsp://localhost:8554/left"
 elif [ $OUTPUT == "screen" ]; then
         # Output to the screen
         GST_OUTPUT="nveglglessink"
@@ -44,6 +44,6 @@ fi
 echo "Launching camera $camera_num"
 
 #configure_cameras $camera_num
-gst-launch-1.0 -ev nvarguscamerasrc sensor-id=$camera_num $NVARGUS_CONFIG ! \
+gst-launch-1.0 -e nvarguscamerasrc sensor-id=$camera_num $NVARGUS_CONFIG ! \
             "video/x-raw(memory:NVMM),width=$IMG_WIDTH,height=$IMG_HEIGHT",framerate=10/1 ! \
             nvvidconv ! 'video/x-raw' ! queue ! $GST_OUTPUT
